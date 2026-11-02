@@ -2,16 +2,22 @@ function digitsOnly(value) {
   return String(value || '').replace(/\D/g, '')
 }
 
+export function normalizeWhatsAppNumber(value) {
+  const digits = digitsOnly(value)
+  if (!digits) return ''
+  return digits.length === 10 ? `91${digits}` : digits
+}
+
 export function isWhatsAppConfigured(number) {
-  const digits = digitsOnly(number)
+  const digits = normalizeWhatsAppNumber(number)
   return digits.length >= 10 && !digits.includes('X')
 }
 
 export function buildWhatsAppUrl(number, message) {
-  const digits = digitsOnly(number)
+  const digits = normalizeWhatsAppNumber(number)
   const text = encodeURIComponent(message)
-  if (!digits) return `https://wa.me/?text=${text}`
-  return `https://wa.me/${digits}?text=${text}`
+  if (!/^\d{10,15}$/.test(digits)) return ''
+  return `https://web.whatsapp.com/send?phone=${digits}&text=${text}`
 }
 
 export function buildProductEnquiryMessage({

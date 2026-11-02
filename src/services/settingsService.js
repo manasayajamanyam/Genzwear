@@ -12,7 +12,17 @@ export async function getStoreSettings() {
 
   try {
     const snapshot = await withServiceTimeout(getDoc(doc(getFirebaseDb(), 'settings', 'store')))
-    return snapshot.exists() ? snapshot.data() : sampleSettings
+    if (!snapshot.exists()) return structuredClone(sampleSettings)
+
+    const data = snapshot.data()
+    const configuredData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== null && String(value).trim() !== ''),
+    )
+
+    return {
+      ...structuredClone(sampleSettings),
+      ...configuredData,
+    }
   } catch (error) {
     console.error('Firestore store settings could not be loaded:', error)
     return structuredClone(sampleSettings)
