@@ -18,6 +18,9 @@ export function buildWhatsAppUrl(number, message) {
   const text = encodeURIComponent(message)
   if (!/^\d{10,15}$/.test(digits)) return ''
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  if (/Android/i.test(navigator.userAgent)) {
+    return `intent://send?phone=${digits}&text=${text}#Intent;scheme=whatsapp;package=com.whatsapp;end`
+  }
   return isMobile
     ? `https://wa.me/${digits}?text=${text}`
     : `https://web.whatsapp.com/send?phone=${digits}&text=${text}`
