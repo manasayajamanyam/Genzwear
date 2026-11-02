@@ -8,7 +8,7 @@ import {
 
 export function useWhatsApp() {
   const { settings } = useStore()
-  const number = settings?.whatsappNumber || '917989474903'
+  const number = '917989474903'
   const configured = isWhatsAppConfigured(number)
 
   function openGeneralChat() {
