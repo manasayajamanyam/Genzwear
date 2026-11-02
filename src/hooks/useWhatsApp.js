@@ -28,7 +28,7 @@ export function useWhatsApp() {
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
-    if (!isMobile && imageUrl && navigator.canShare) {
+    if (isMobile && imageUrl && navigator.share && navigator.canShare) {
       try {
         const response = await fetch(imageUrl)
         if (!response.ok) throw new Error(`Unable to load product image (${response.status})`)
