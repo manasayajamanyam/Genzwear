@@ -26,7 +26,9 @@ export function useWhatsApp() {
     })
     const imageUrl = product?.primaryImage || product?.images?.find((image) => image?.url)?.url
 
-    if (imageUrl && navigator.canShare) {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    if (!isMobile && imageUrl && navigator.canShare) {
       try {
         const response = await fetch(imageUrl)
         if (!response.ok) throw new Error(`Unable to load product image (${response.status})`)
@@ -54,9 +56,9 @@ export function useWhatsApp() {
       message,
     )
     if (!whatsappUrl) return
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+    window.location.assign(whatsappUrl)
 
-    if (!imageUrl) return
+    if (isMobile || !imageUrl) return
 
     try {
       const response = await fetch(imageUrl)

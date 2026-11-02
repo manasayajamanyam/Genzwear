@@ -17,7 +17,10 @@ export function buildWhatsAppUrl(number, message) {
   const digits = normalizeWhatsAppNumber(number)
   const text = encodeURIComponent(message)
   if (!/^\d{10,15}$/.test(digits)) return ''
-  return `https://web.whatsapp.com/send?phone=${digits}&text=${text}`
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  return isMobile
+    ? `https://wa.me/${digits}?text=${text}`
+    : `https://web.whatsapp.com/send?phone=${digits}&text=${text}`
 }
 
 export function buildProductEnquiryMessage({
