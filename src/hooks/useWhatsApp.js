@@ -24,6 +24,33 @@ export function useWhatsApp() {
       colour: selection.colour,
       quantity: selection.quantity,
     })
+    const imageUrl = product?.primaryImage || product?.images?.find((image) => image?.url)?.url
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    if (isMobile && imageUrl && navigator.share && navigator.canShare) {
+      try {
+        const response = await fetch(imageUrl, { mode: 'cors' })
+        if (!response.ok) throw new Error(`Unable to load product image (${response.status})`)
+
+        const blob = await response.blob()
+        const extension = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg'
+        const image = new File([blob], `${product?.id || 'product'}.${extension}`, {
+          type: blob.type || 'image/jpeg',
+        })
+
+        if (navigator.canShare({ files: [image] })) {
+          await navigator.share({
+            files: [image],
+            title: product?.name || 'Product enquiry',
+            text: message,
+          })
+          return
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') return
+      }
+    }
+
     const whatsappUrl = buildWhatsAppUrl(
       number,
       message,
@@ -31,8 +58,6 @@ export function useWhatsApp() {
     if (!whatsappUrl) return
     window.location.assign(whatsappUrl)
 
-    const imageUrl = product?.primaryImage || product?.images?.find((image) => image?.url)?.url
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     if (isMobile || !imageUrl) return
 
     try {
