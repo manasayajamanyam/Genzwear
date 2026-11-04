@@ -316,6 +316,7 @@ export default function Dashboard() {
                     {product.primaryImage ? <img src={product.primaryImage} alt="" className="h-20 w-16 object-cover" /> : <div className="h-20 w-16 bg-ink" />}
                     <div className="min-w-0 flex-1">
                       <p className="truncate">{product.name}</p>
+                      <p className="mt-1 break-all text-[10px] uppercase tracking-[0.08em] text-gold">ID: {product.id}</p>
                       <p className="mt-1 text-xs text-stone">Stock {product.stock ?? 0} · {product.isActive ? 'Active' : 'Hidden'}</p>
                       <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-gold">
                         {[product.isNewArrival && 'New', product.isBestseller && 'Best seller', product.isTrending && 'Trending'].filter(Boolean).join(' · ') || 'Standard'}

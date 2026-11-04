@@ -95,3 +95,17 @@ The number lives in store settings. It is empty in sample data on purpose so a f
 - `npm run dev` — local development
 - `npm run build` — production build
 - `npm run preview` — preview the production build
+
+## Deploy to Cloudflare Pages
+
+1. Push the repository to GitHub.
+2. In Cloudflare Dashboard, open **Workers & Pages > Create > Pages > Connect to Git**.
+3. Select the `Genzwear` repository.
+4. Configure the build:
+   - Framework preset: `Vite`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+5. Add the Firebase and Cloudinary values from `.env.example` under **Settings > Environment variables > Production**. Use the `VITE_` variable names shown in that file.
+6. Deploy. Add Cloudflare's generated `pages.dev` domain to Firebase Authentication **Authorized domains**.
+
+The `public/_redirects` file routes React Router URLs such as `/shop`, `/product/...`, and `/admin/dashboard` back to the React app.
