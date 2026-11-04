@@ -4,11 +4,14 @@ import {
   buildProductEnquiryMessage,
   buildWhatsAppUrl,
   isWhatsAppConfigured,
+  getProductPageUrl,
+  getProductImageUrl,
+  shareProductEnquiry,
 } from '../utils/whatsapp'
 
 export function useWhatsApp() {
   const { settings } = useStore()
-  const number = '917989474903'
+  const number = settings?.whatsappNumber || '917989474903'
   const configured = isWhatsAppConfigured(number)
 
   function openGeneralChat() {
@@ -18,59 +21,20 @@ export function useWhatsApp() {
   }
 
   async function openProductEnquiry(product, selection = {}) {
+    const productUrl = getProductPageUrl(product)
+    const imageUrl = getProductImageUrl(product)
     const message = buildProductEnquiryMessage({
       product,
       size: selection.size,
       colour: selection.colour,
       quantity: selection.quantity,
+      imageUrl,
+      productUrl,
     })
-    const imageUrl = product?.primaryImage || product?.images?.find((image) => image?.url)?.url
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-
-    if (isMobile && imageUrl) {
-      try {
-        const response = await fetch(imageUrl, { mode: 'cors' })
-        if (!response.ok) throw new Error(`Unable to load product image (${response.status})`)
-
-        const blob = await response.blob()
-        const extension = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg'
-        const objectUrl = URL.createObjectURL(blob)
-        const download = document.createElement('a')
-        download.href = objectUrl
-        download.download = `${product?.id || 'product'}.${extension}`
-        document.body.appendChild(download)
-        download.click()
-        download.remove()
-        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
-      } catch {
-        // The direct WhatsApp chat is still opened below.
-      }
-    }
-
-    const whatsappUrl = buildWhatsAppUrl(
-      number,
-      message,
-    )
-    if (!whatsappUrl) return
-    window.location.assign(whatsappUrl)
-
-    if (isMobile || !imageUrl) return
-
     try {
-      const response = await fetch(imageUrl)
-      if (!response.ok) throw new Error(`Unable to download product image (${response.status})`)
-
-      const blob = await response.blob()
-      const objectUrl = URL.createObjectURL(blob)
-      const download = document.createElement('a')
-      download.href = objectUrl
-      download.download = `${product?.id || 'product'}.${blob.type.split('/')[1] || 'jpg'}`
-      document.body.appendChild(download)
-      download.click()
-      download.remove()
-      URL.revokeObjectURL(objectUrl)
+      await shareProductEnquiry({ number, product, message })
     } catch {
-      window.open(imageUrl, '_blank', 'noopener,noreferrer')
+      console.error('Could not open the WhatsApp enquiry. Check the configured number and try again.')
     }
   }
 
