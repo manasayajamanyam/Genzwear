@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useStore } from '../context/StoreContext'
 import {
   buildGeneralEnquiryMessage,
@@ -6,13 +7,20 @@ import {
   isWhatsAppConfigured,
   getProductPageUrl,
   getProductImageUrl,
+  preloadProductImage,
   shareProductEnquiry,
 } from '../utils/whatsapp'
 
 export function useWhatsApp() {
-  const { settings } = useStore()
+  const { settings, products } = useStore()
   const number = settings?.whatsappNumber || '917989474903'
   const configured = isWhatsAppConfigured(number)
+
+  useEffect(() => {
+    products?.forEach((product) => {
+      preloadProductImage(product).catch(() => undefined)
+    })
+  }, [products])
 
   function openGeneralChat() {
     const url = buildWhatsAppUrl(number, buildGeneralEnquiryMessage(settings?.storeName))

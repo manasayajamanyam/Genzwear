@@ -100,6 +100,27 @@ export function isMobileDevice() {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 }
 
+const productImageFiles = new Map()
+
+function isFileShareSupported(file) {
+  return typeof navigator.canShare === 'function' &&
+    navigator.canShare({ files: [file] })
+}
+
+export function preloadProductImage(product) {
+  const imageUrl = getProductImageUrl(product)
+  if (!imageUrl || !isMobileDevice() || typeof navigator.share !== 'function') return Promise.resolve()
+
+  if (!productImageFiles.has(imageUrl)) {
+    const filePromise = fetchProductImageFile(imageUrl, product?.id).catch((error) => {
+      productImageFiles.delete(imageUrl)
+      throw error
+    })
+    productImageFiles.set(imageUrl, filePromise)
+  }
+  return productImageFiles.get(imageUrl)
+}
+
 export async function shareProductEnquiry({ number, product, message }) {
   const imageUrl = getProductImageUrl(product)
   const whatsappUrl = buildWhatsAppUrl(number, message)
@@ -112,9 +133,11 @@ export async function shareProductEnquiry({ number, product, message }) {
 
   let imageError = ''
   try {
-    let file
+    let file = productImageFiles.get(imageUrl)
     try {
-      file = await fetchProductImageFile(imageUrl, product?.id)
+      file = await (file instanceof Promise
+        ? file
+        : fetchProductImageFile(imageUrl, product?.id))
     } catch (error) {
       console.error('The product image could not be attached:', error)
       imageError = error instanceof Error ? error.message : 'The product image could not be loaded.'
@@ -122,9 +145,7 @@ export async function shareProductEnquiry({ number, product, message }) {
 
     if (file) {
       const shareData = { title: product?.name || 'GEN Z WEAR product', text: message, files: [file] }
-      const canShareFiles = typeof navigator.canShare === 'function'
-        ? navigator.canShare({ files: [file] })
-        : false
+      const canShareFiles = isFileShareSupported(file)
       if (canShareFiles) {
         await navigator.share(shareData)
         return
