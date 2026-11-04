@@ -110,17 +110,22 @@ export async function shareProductEnquiry({ number, product, message }) {
     return
   }
 
+  let imageError = ''
   try {
     let file
     try {
       file = await fetchProductImageFile(imageUrl, product?.id)
     } catch (error) {
       console.error('The product image could not be attached:', error)
+      imageError = error instanceof Error ? error.message : 'The product image could not be loaded.'
     }
 
     if (file) {
       const shareData = { title: product?.name || 'GEN Z WEAR product', text: message, files: [file] }
-      if (navigator.canShare?.({ files: [file] })) {
+      const canShareFiles = typeof navigator.canShare === 'function'
+        ? navigator.canShare({ files: [file] })
+        : false
+      if (canShareFiles) {
         await navigator.share(shareData)
         return
       }
@@ -129,8 +134,14 @@ export async function shareProductEnquiry({ number, product, message }) {
   } catch (error) {
     if (error?.name === 'AbortError') return
     console.error('Native sharing failed; opening WhatsApp fallback:', error)
+    window.alert('Image sharing failed. WhatsApp will open with the product details and image URL.')
   }
 
+  if (!window.navigator.canShare) {
+    window.alert('This browser cannot attach files. WhatsApp will open with the product details and image URL.')
+  } else if (imageError) {
+    window.alert(`${imageError} WhatsApp will open with the product image URL.`)
+  }
   window.location.assign(whatsappUrl)
 }
 

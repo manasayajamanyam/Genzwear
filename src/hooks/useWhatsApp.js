@@ -33,8 +33,9 @@ export function useWhatsApp() {
     })
     try {
       await shareProductEnquiry({ number, product, message })
-    } catch {
-      console.error('Could not open the WhatsApp enquiry. Check the configured number and try again.')
+    } catch (error) {
+      console.error('Could not open the WhatsApp enquiry:', error)
+      window.alert('Could not open WhatsApp. Please check the phone number and try again.')
     }
   }
 
